@@ -1,10 +1,12 @@
 // Copyright 2017, Institute for Artificial Intelligence - University of Bremen
 
 #pragma once
-
+#include "Containers/UnrealString.h"
+#include "Math/Color.h"
 #include <mutex>
 #include <vector>
 #include <condition_variable>
+#include "Math/Float16.h"
 
 /**
  * This is a double buffer, one for reading and one for writing. When writing is done they will be swapped.
@@ -65,28 +67,28 @@ public:
 
 
 private:
-  std::vector<uint8> ReadBuffer, WriteBuffer;
+  std::vector<uint8_t> ReadBuffer, WriteBuffer;
   bool IsDataReadable;
   std::mutex LockBuffer, LockRead;
   std::condition_variable CVWait;
 
 public:
   // Sizes of the Header, the raw color and depth image data
-  const uint32 SizeHeader, SizeRGB, SizeFloat;
+  const uint32_t SizeHeader, SizeRGB, SizeFloat;
   // Offsets for the images and map entries in the packet buffer
-  const uint32 OffsetColor, OffsetDepth, OffsetObject, OffsetMap;
+  const uint32_t OffsetColor, OffsetDepth, OffsetObject, OffsetMap;
   // Size of the complete packet
-  const uint32 Size;
+  const uint32_t Size;
   // Pointers to the beginning of the images and map for writing and a pointer to the beginning of a completed packet for reading
-  uint8 *Color, *Depth, *Object, *Map, *Read;
+  uint8_t *Color, *Depth, *Object, *Map, *Read;
   // Pointer to the packet headers
   PacketHeader *HeaderWrite, *HeaderRead;
 
   // Initializes the buffer, widht and height are not changeable afterwards
-  PacketBuffer(const uint32 Width, const uint32 Height, const float FieldOfView);
+  PacketBuffer(const uint32_t Width, const uint32_t Height, const float FieldOfView);
 
   // Starts writing and copies the map entries to the end of the packet.
-  void StartWriting(const TMap<FString, uint32> &ObjectToColor, const TArray<FColor> &ObjectColors);
+  void StartWriting(const TMap<FString, uint32_t> &ObjectToColor, const TArray<FColor> &ObjectColors);
 
   // Swaps reading and writing buffer and unblocks the reading thread
   void DoneWriting();

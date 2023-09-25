@@ -3,8 +3,8 @@
 #include "PacketBuffer.h"
 //#include "URoboVision.h"
 
-PacketBuffer::PacketBuffer(const uint32 Width, const uint32 Height, const float FieldOfView) :
-  IsDataReadable(false), SizeHeader(sizeof(PacketHeader)), SizeRGB(Width *Height * 3 * sizeof(uint8)), SizeFloat(Width *Height *sizeof(FFloat16)),
+PacketBuffer::PacketBuffer(const uint32_t Width, const uint32_t Height, const float FieldOfView) :
+  IsDataReadable(false), SizeHeader(sizeof(PacketHeader)), SizeRGB(Width *Height * 3 * sizeof(uint8_t)), SizeFloat(Width *Height *sizeof(FFloat16)),
   OffsetColor(SizeHeader), OffsetDepth(OffsetColor + SizeRGB), OffsetObject(OffsetDepth + SizeFloat), OffsetMap(OffsetObject + SizeRGB),
   Size(SizeHeader + SizeRGB + SizeFloat + SizeRGB)
 {
@@ -41,7 +41,7 @@ PacketBuffer::PacketBuffer(const uint32 Width, const uint32 Height, const float 
   IsDataReadable = false;
 }
 
-void PacketBuffer::StartWriting(const TMap<FString, uint32> &ObjectToColor, const TArray<FColor> &ObjectColors)
+void PacketBuffer::StartWriting(const TMap<FString, uint32_t> &ObjectToColor, const TArray<FColor> &ObjectColors)
 {
   uint32_t Count = 0;
   uint32_t MapSize = 0;

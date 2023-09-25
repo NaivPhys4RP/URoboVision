@@ -3,7 +3,13 @@
 #include "RGBDCamera.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Camera/CameraComponent.h"
+
+#if ENGINE_MINOR_VERSION > 23 || ENGINE_MAJOR_VERSION >4
 #include "UObject/ConstructorHelpers.h"
+#else
+#include "ConstructorHelpers.h"
+#endif
+
 #include "EngineUtils.h"
 #include "StopTime.h"
 #include "Server.h"
@@ -40,7 +46,7 @@ ARGBDCamera::ARGBDCamera() /*: ACameraActor(), Width(960), Height(540), Framerat
 	// Default vison camera values
 	Width = 960;
 	Height = 540;
-	Framerate = 1.f;
+	Framerate = 60.f;
 	FieldOfView = 90.f;
 	FrameTime = 1.0f / Framerate;
 	TimePassed = 0.f;
@@ -282,6 +288,7 @@ void ARGBDCamera::Tick(float DeltaTime)
 
 	// Read color image and notify processing thread
 	Priv->WaitColor.lock();
+	ColorImgCaptureComp->CaptureScene();
 	ReadColorImage(ColorImgCaptureComp->TextureTarget, ImageColor);
 	Priv->WaitColor.unlock();
 	Priv->DoColor = true;
@@ -289,6 +296,7 @@ void ARGBDCamera::Tick(float DeltaTime)
 
 	// Read object image and notify processing thread
 	Priv->WaitObject.lock();
+	ObjectMaskImgCaptureComp->CaptureScene();
 	ReadImage(ObjectMaskImgCaptureComp->TextureTarget, ImageObject);
 	Priv->WaitObject.unlock();
 	Priv->DoObject = true;
@@ -300,6 +308,7 @@ void ARGBDCamera::Tick(float DeltaTime)
 	* the buffer.
 	*/
 	Priv->WaitDepth.lock();
+	DepthImgCaptureComp->CaptureScene();
 	ReadImage(DepthImgCaptureComp->TextureTarget, ImageDepth);
 	Priv->WaitDepth.unlock();
 	Priv->DoDepth = true;
@@ -479,6 +488,7 @@ void ARGBDCamera::ReadImage(UTextureRenderTarget2D *RenderTarget, TArray<FFloat1
 
 void ARGBDCamera::ReadColorImage(UTextureRenderTarget2D *RenderTarget, TArray<FColor> &ImageData) const
 {
+
 	int32 RT_Width = RenderTarget->SizeX, RT_Height = RenderTarget->SizeY;
 	FTextureRenderTargetResource* RenderTargetResource;
 	ImageData.AddZeroed(RT_Width * RT_Height);
@@ -611,17 +621,13 @@ bool ARGBDCamera::ColorObject(AActor *Actor, const FString &name)
 	{
 		return false;
 	}
-	//TArray<UActorComponent*> SegmentationComponents = Actor->GetComponentsByClass(USegmentationComponent::StaticClass());
-	TArray<UActorComponent*> SegmentationComponents;
-	Actor->GetComponents(USegmentationComponent::StaticClass(), SegmentationComponents);
+	TArray<UActorComponent*> SegmentationComponents = Actor->GetComponentsByClass(USegmentationComponent::StaticClass());
 	if (SegmentationComponents.Num() != 0)
 	{
 		return false;
 	}
 
-	//TArray<UActorComponent*> MeshComponents = Actor->GetComponentsByClass(UMeshComponent::StaticClass());
-	TArray<UActorComponent*> MeshComponents;
-	Actor->GetComponents(UMeshComponent::StaticClass(), MeshComponents);
+	TArray<UActorComponent*> MeshComponents = Actor->GetComponentsByClass(UMeshComponent::StaticClass());
 	for (UActorComponent* Component : MeshComponents)
 	{
 		UMeshComponent* MeshComponent = Cast<UMeshComponent>(Component);
